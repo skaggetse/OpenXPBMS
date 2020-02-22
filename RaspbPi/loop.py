@@ -21,7 +21,7 @@ s = serial.Serial(
     port = BMSsettings.sPort,
     baudrate=9600,
     parity=serial.PARITY_MARK,
-    stopbits=serial.STOPBITS_TWO,
+    stopbits=serial.STOPBITS_ONE,
     bytesize=serial.EIGHTBITS,
     timeout=1
 )
@@ -38,7 +38,7 @@ footer = [0x0d,0x0a]
 s = serial.Serial(
     port = BMSsettings.sPort,
     baudrate=115200,
-    parity=serial.PARITY_EVEN,
+    parity=serial.PARITY_MARK,
     stopbits=serial.STOPBITS_ONE,
     bytesize=serial.EIGHTBITS,
     timeout=1
