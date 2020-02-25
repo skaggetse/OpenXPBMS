@@ -7,3 +7,6 @@ batteries = 2
 # Voltage limits for shutdown
 hVoltLimit = 3300
 lVoltLimit = 3286
+
+# Remove UI, View log
+debug = False
