@@ -5,8 +5,8 @@ sPort = 'COM3'
 batteries = 2
 
 # Voltage limits for shutdown
-hVoltLimit = 3300
-lVoltLimit = 3286
+hVoltLimit = 3600
+lVoltLimit = 3000
 
 # Remove UI, View log
 debug = False

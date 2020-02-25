@@ -41,7 +41,7 @@ screen.addstr(0, centercol(" Pack (V) ",3), " Pack (V) ")
 
 boxSOC = screen.subwin(hthirds,wthirds, hthirds, 0)
 boxSOC.box()
-screen.addstr(hthirds, centercol(" Cell High (V) ",1), " Cell High (V) ")
+screen.addstr(hthirds, centercol(" Cell High (mV) ",1), " Cell High (V) ")
 
 boxCurrent = screen.subwin(hthirds,wthirds, hthirds, wthirds)
 boxCurrent.box()
@@ -55,7 +55,7 @@ screen.addstr(hthirds, centercol(" PCB High (C) ",3), " PCB High (C) ")
 
 boxSOC = screen.subwin(hthirds,wthirds, hthirds*2, 0)
 boxSOC.box()
-screen.addstr(hthirds*2, centercol(" Cell Low (V) ",1), " Cell Low (V) ")
+screen.addstr(hthirds*2, centercol(" Cell Low (mV) ",1), " Cell Low (V) ")
 
 boxCurrent = screen.subwin(hthirds,wthirds, hthirds*2, wthirds)
 boxCurrent.box()
@@ -69,6 +69,6 @@ screen.refresh()
 
 # STATUS ROW
 
-screen.addstr((hthirds*3)-1, 0, " ERR: ")
+screen.addstr((hthirds*3)-1, 1, " ERR: ")
 
 ## END TUI

@@ -18,7 +18,7 @@ s = serial.Serial(
     timeout=1
 )
 s.write(serial.to_bytes(payloadW))
-print("Woke up serial device")
+# print("Woke up serial device")
 s.flush()
 s.close()   
 time.sleep(.100)
@@ -36,6 +36,11 @@ s = serial.Serial(
     timeout=1
 )
 
+def sHEX(hexstr):
+    if hexstr > 32768:
+        hexstr = hexstr - 65536
+    return hexstr
+
 battery = 0
 readCellbank = 1
 error = 0
@@ -52,10 +57,10 @@ while ( readCellbank == 1 ):
     lTemp=list()
     PCBTemp=list()
 
-    print('--------------------------------- START READ ----------------------------------')
+    # print('--------------------------------- START READ ----------------------------------')
     while ( battery < BMSsettings.batteries):
         battery = battery + 1
-        print("Reading battery no ", battery)
+        # print("Reading battery no ", battery)
         payloadBMS.insert(0,battery)
         crc = libscrc.modbus(bytes(payloadBMS))
         crc = list(crc.to_bytes(2,'little'))
@@ -74,8 +79,8 @@ while ( readCellbank == 1 ):
                 fullData = True
                 break
         
-        print("Payload: ", payload)
-        print("Response: ", output)
+        # print("Payload: ", payload)
+        # print("Response: ", output)
 
         # Calculate expected CRC    
         responsecrc = libscrc.modbus(output[:-4])
@@ -84,11 +89,11 @@ while ( readCellbank == 1 ):
         # If CRC matches, continue
         if responsecrc == output[21:-2]:
             SOC.append((output[4] / 255))
-            current.append((output[5] * 256) + output[6])
+            current.append(sHEX((output[5] * 256) + output[6]))
             moduleVolt.append((output[9] * 256) + output[10])
-            PCBTemp.append((output[7] * 256) + output[8])
-            hTemp.append((output[11] * 256) + output[12])
-            lTemp.append((output[13] * 256) + output[14])
+            PCBTemp.append(sHEX((output[7] * 256) + output[8]))
+            hTemp.append(sHEX((output[11] * 256) + output[12]))
+            lTemp.append(sHEX((output[13] * 256) + output[14]))
             hVolt.append((output[15] * 256) + output[16])
             lVolt.append((output[17] * 256) + output[18])
 
@@ -97,30 +102,30 @@ while ( readCellbank == 1 ):
             output = list()
             s.reset_input_buffer()
             error = error + 1
-            print("CRC Mismatch, clearing buffer & reading battery no", battery, "again.")
+            # print("CRC Mismatch, clearing buffer & reading battery no", battery, "again.")
             battery = battery - 1
 
         payloadBMS.pop(0) #Remove Slave no from payload
         time.sleep(.200)
 
-    print("No of RS485 Errors:",error)
-    print("Lowest SOC:",min(SOC))
-    print("Median Current:",statistics.median(current))
-    print("Total Pack Voltage:",sum(moduleVolt))
-    print("Highest PCB Temperature:",max(PCBTemp))
-    print("Lowest PCB Temperature:",min(PCBTemp))
-    print("Highest Cell Temperature:",max(hTemp))
-    print("Lowest Cell Temperature:",min(lTemp))
-    print("Highest Cell Voltage:",max(hVolt))
-    print("Lowest Cell Voltage:",min(lVolt))
+    # print("No of RS485 Errors:",error)
+    # print("Lowest SOC:",min(SOC))
+    # print("Median Current:",statistics.median(current))
+    # print("Total Pack Voltage:",sum(moduleVolt))
+    # print("Highest PCB Temperature:",max(PCBTemp))
+    # print("Lowest PCB Temperature:",min(PCBTemp))
+    # print("Highest Cell Temperature:",max(hTemp))
+    # print("Lowest Cell Temperature:",min(lTemp))
+    # print("Highest Cell Voltage:",max(hVolt))
+    # print("Lowest Cell Voltage:",min(lVolt))
 
     if BMSsettings.hVoltLimit < max(hVolt):
-        print("Shutdown High Volt")
+        # print("Shutdown High Volt")
         m = max(hVolt)
         print(m)
         print([i for i, j in enumerate(hVolt) if j == m])
     elif min(lVolt) < BMSsettings.lVoltLimit:
-        print("Shutdown Low Volt")
+        # print("Shutdown Low Volt")
         l = min(lVolt)
         print(l)
         print([i for i, j in enumerate(hVolt) if j == l])
@@ -130,8 +135,8 @@ while ( readCellbank == 1 ):
     # Update TUI
     if BMSsettings.debug == False:
         SOC=round((min(SOC)*100))
-        current=round((statistics.median(current)/1000),2)
-        moduleVolt=round((sum(moduleVolt)/1000),2)
+        current=round((statistics.median(current)/100),1)
+        moduleVolt=round((sum(moduleVolt)/1000))
         hPCBTemp=round((max(PCBTemp)/1000),1)
         lPCBTemp=round((min(PCBTemp)/1000),1)
         hTemp=round((max(hTemp)/1000),1)
@@ -156,5 +161,5 @@ while ( readCellbank == 1 ):
             reading = str()
         tui.screen.addstr((tui.hthirds*3)-1, (tui.wthirds*3)-13, " READING    ")
         tui.screen.addstr((tui.hthirds*3)-1, (tui.wthirds*3)-5, reading)
-        tui.screen.addstr((tui.hthirds*3)-1, 6, str(error) + " ")
+        tui.screen.addstr((tui.hthirds*3)-1, 7, str(error) + " ")
         tui.screen.refresh()
