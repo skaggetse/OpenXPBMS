@@ -6,6 +6,7 @@ screen = curses.initscr()
 curses.noecho()
 curses.cbreak()
 screen.keypad(True)
+screen.nodelay(1)
 curses.curs_set(0)
 screensize = screen.getmaxyx()
 

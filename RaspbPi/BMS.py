@@ -3,6 +3,7 @@ import libscrc
 import time
 import statistics
 import BMSsettings
+import RPi.GPIO as GPIO
 if BMSsettings.debug == False:
     import curses
     import tui
@@ -36,8 +37,25 @@ s = serial.Serial(
     timeout=1
 )
 
+# Setup GPIO pins for relay on/off
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(16,GPIO.OUT)
+
+# Function relay on
+def chargeEnable():
+    GPIO.output(16,GPIO.HIGH)
+# Function relay off
+def chargeShutdown():
+    GPIO.output(16,GPIO.LOW)
+
+# Startup with relay on
+#print("Charge Enable")
+chargeEnable()
+
+
 def sHEX(hexstr):
-    if hexstr > 32768:
+    if hexstr > 32767:
         hexstr = hexstr - 65536
     return hexstr
 
@@ -106,7 +124,7 @@ while ( readCellbank == 1 ):
             battery = battery - 1
 
         payloadBMS.pop(0) #Remove Slave no from payload
-        time.sleep(.200)
+        time.sleep(.100)
 
     # print("No of RS485 Errors:",error)
     # print("Lowest SOC:",min(SOC))
@@ -120,15 +138,19 @@ while ( readCellbank == 1 ):
     # print("Lowest Cell Voltage:",min(lVolt))
 
     if BMSsettings.hVoltLimit < max(hVolt):
+        chargeShutdown()
         # print("Shutdown High Volt")
-        m = max(hVolt)
-        print(m)
-        print([i for i, j in enumerate(hVolt) if j == m])
+        # m, hVcell = None
+        # m = max(hVolt)
+        # print(m)
+        # hVcell = [i for i, j in enumerate(hVolt) if j == m]
+
     elif min(lVolt) < BMSsettings.lVoltLimit:
+        chargeShutdown()
         # print("Shutdown Low Volt")
-        l = min(lVolt)
-        print(l)
-        print([i for i, j in enumerate(hVolt) if j == l])
+        # l = min(lVolt)
+        # print(l)
+        # print([i for i, j in enumerate(hVolt) if j == l])
 
     battery=0
 
@@ -163,3 +185,20 @@ while ( readCellbank == 1 ):
         tui.screen.addstr((tui.hthirds*3)-1, (tui.wthirds*3)-5, reading)
         tui.screen.addstr((tui.hthirds*3)-1, 7, str(error) + " ")
         tui.screen.refresh()
+
+        key = tui.screen.getch()
+        if key == ord('q'):
+            # clear the screen
+            tui.screen.clear()
+
+            # reverse terminal settings
+            curses.nocbreak()
+            tui.screen.keypad(False)
+            curses.echo()
+
+            # close the application
+            curses.endwin()
+            break
+
+chargeShutdown()
+print("Program terminated, charge shutdown")
