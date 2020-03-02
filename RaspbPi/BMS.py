@@ -188,17 +188,20 @@ while ( readCellbank == 1 ):
 
         key = tui.screen.getch()
         if key == ord('q'):
-            # clear the screen
-            tui.screen.clear()
-
-            # reverse terminal settings
-            curses.nocbreak()
-            tui.screen.keypad(False)
-            curses.echo()
-
-            # close the application
-            curses.endwin()
             break
+
+#Reset window
+if BMSsettings.debug == False:
+    # clear the screen
+    tui.screen.clear()
+
+    # reverse terminal settings
+    curses.nocbreak()
+    tui.screen.keypad(False)
+    curses.echo()
+
+    # close the application
+    curses.endwin()
 
 chargeShutdown()
 print("Program terminated, charge shutdown")
