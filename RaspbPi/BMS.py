@@ -58,7 +58,7 @@ def chargeShutdown():
 chargeEnable()
 
 # set up logging to file - see previous section for more details
-logging.basicConfig(level=logging.debug,
+logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                     datefmt='%m-%d %H:%M',
                     filename= BMSsettings.path + 'batterylog.log',
@@ -181,7 +181,9 @@ while ( readCellbank == 1 ):
     output_hVolt=max(hVolt)
     output_lVolt=min(lVolt)
 
-    logging.info(output_hVolt)
+    output_log = [output_SOC, output_reliableCurrent, output_moduleVolt, output_hVolt, output_hTemp, output_hPCBTemp, output_lVolt, output_lVolt, output_lPCBTemp]
+
+    logging.info(output_log)
 
     # Update TUI
     if BMSsettings.debug == False:
