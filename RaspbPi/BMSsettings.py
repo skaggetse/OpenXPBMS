@@ -10,3 +10,6 @@ lVoltLimit = 3000
 
 # Remove UI, View log
 debug = False
+
+# Logging path
+path = '/Users/skagget/Dropbox/Think City/Valence/OpenXPBMS/RaspbPi/logs/'

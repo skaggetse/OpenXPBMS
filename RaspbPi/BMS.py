@@ -4,11 +4,15 @@ import time
 import statistics
 import BMSsettings
 import RPi.GPIO as GPIO
+import logging
 if BMSsettings.debug == False:
     import curses
     import tui
 
 payloadW = [0x00,0x00,0x01,0x01,0xc0,0x74,0x0d,0x0a,0x00,0x00]
+
+now = time.time()
+lasttime = now
 
 s = serial.Serial(
     port = BMSsettings.sPort,
@@ -53,6 +57,13 @@ def chargeShutdown():
 #print("Charge Enable")
 chargeEnable()
 
+# set up logging to file - see previous section for more details
+logging.basicConfig(level=logging.debug,
+                    format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
+                    datefmt='%m-%d %H:%M',
+                    filename= BMSsettings.path + 'batterylog.log',
+                    filemode='w')
+
 
 def sHEX(hexstr):
     if hexstr > 32767:
@@ -75,6 +86,7 @@ while ( readCellbank == 1 ):
     lTemp=list()
     PCBTemp=list()
 
+    
     # print('--------------------------------- START READ ----------------------------------')
     while ( battery < BMSsettings.batteries):
         battery = battery + 1
@@ -106,7 +118,7 @@ while ( readCellbank == 1 ):
 
         # If CRC matches, continue
         if responsecrc == output[21:-2]:
-            SOC.append((output[4] / 255))
+            SOC.append((output[4] / 256))
             current.append(sHEX((output[5] * 256) + output[6]))
             moduleVolt.append((output[9] * 256) + output[10])
             PCBTemp.append(sHEX((output[7] * 256) + output[8]))
@@ -154,28 +166,36 @@ while ( readCellbank == 1 ):
 
     battery=0
 
+    output_SOC=round((min(SOC)*100))
+    if BMSsettings.batteries > 2: # Added a new way to calculate current
+        current.sort()
+        reliableCurrent = current[1:-1]
+    else:
+        reliableCurrent = current
+    output_reliableCurrent=round((statistics.mean(reliableCurrent)/100),1)
+    output_moduleVolt=round((sum(moduleVolt)/1000))
+    output_hPCBTemp=round((max(PCBTemp)/1000),1)
+    output_lPCBTemp=round((min(PCBTemp)/1000),1)
+    output_hTemp=round((max(hTemp)/1000),1)
+    output_lTemp=round((min(lTemp)/1000),1)
+    output_hVolt=max(hVolt)
+    output_lVolt=min(lVolt)
+
+    logging.info(output_hVolt)
+
     # Update TUI
     if BMSsettings.debug == False:
-        SOC=round((min(SOC)*100))
-        current=round((statistics.median(current)/100),1)
-        moduleVolt=round((sum(moduleVolt)/1000))
-        hPCBTemp=round((max(PCBTemp)/1000),1)
-        lPCBTemp=round((min(PCBTemp)/1000),1)
-        hTemp=round((max(hTemp)/1000),1)
-        lTemp=round((min(lTemp)/1000),1)
-        hVolt=max(hVolt)
-        lVolt=min(lVolt)
 
         tui.screen.attron(curses.A_BOLD)
-        tui.screen.addstr(tui.centerrow(1,1), tui.centercol(str(SOC),1), str(SOC))
-        tui.screen.addstr(tui.centerrow(1,1), tui.centercol(str(current),2), str(current))
-        tui.screen.addstr(tui.centerrow(1,1), tui.centercol(str(moduleVolt),3), str(moduleVolt))
-        tui.screen.addstr(tui.centerrow(1,2), tui.centercol(str(hVolt),1), str(hVolt))
-        tui.screen.addstr(tui.centerrow(1,2), tui.centercol(str(hTemp),2), str(hTemp))
-        tui.screen.addstr(tui.centerrow(1,2), tui.centercol(str(hPCBTemp),3), str(hPCBTemp))
-        tui.screen.addstr(tui.centerrow(1,3), tui.centercol(str(lVolt),1), str(lVolt))
-        tui.screen.addstr(tui.centerrow(1,3), tui.centercol(str(lTemp),2), str(lTemp))
-        tui.screen.addstr(tui.centerrow(1,3), tui.centercol(str(lPCBTemp),3), str(lPCBTemp))
+        tui.screen.addstr(tui.centerrow(1,1), tui.centercol(str(output_SOC),1), str(output_SOC))
+        tui.screen.addstr(tui.centerrow(1,1), tui.centercol(str(output_reliableCurrent),2), str(output_reliableCurrent))
+        tui.screen.addstr(tui.centerrow(1,1), tui.centercol(str(output_moduleVolt),3), str(output_moduleVolt))
+        tui.screen.addstr(tui.centerrow(1,2), tui.centercol(str(output_hVolt),1), str(output_hVolt))
+        tui.screen.addstr(tui.centerrow(1,2), tui.centercol(str(output_hTemp),2), str(output_hTemp))
+        tui.screen.addstr(tui.centerrow(1,2), tui.centercol(str(output_hPCBTemp),3), str(output_hPCBTemp))
+        tui.screen.addstr(tui.centerrow(1,3), tui.centercol(str(output_lVolt),1), str(output_lVolt))
+        tui.screen.addstr(tui.centerrow(1,3), tui.centercol(str(output_lTemp),2), str(output_lTemp))
+        tui.screen.addstr(tui.centerrow(1,3), tui.centercol(str(output_lPCBTemp),3), str(output_lPCBTemp))
         tui.screen.attroff(curses.A_BOLD)
 
         reading = reading + "."
