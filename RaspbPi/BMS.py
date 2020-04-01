@@ -182,6 +182,7 @@ while ( readCellbank == 1 ):
     output_hVolt=max(hVolt)
     output_lVolt=min(lVolt)
 
+    count = count + 1
     if count == BMSsettings.nthlog:
 
         output_log = [output_SOC, output_reliableCurrent, output_moduleVolt, output_hVolt, output_hTemp, output_hPCBTemp, output_lVolt, output_lVolt, output_lPCBTemp]
