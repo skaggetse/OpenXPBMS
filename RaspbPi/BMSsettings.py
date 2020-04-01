@@ -13,4 +13,4 @@ debug = False
 
 # Logging path
 path = '/home/pi/OpenXPBMS/RaspbPi/logs/'
-nthlog = 10
+nthlog = 5

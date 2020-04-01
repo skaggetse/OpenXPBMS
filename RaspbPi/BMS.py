@@ -185,7 +185,7 @@ while ( readCellbank == 1 ):
     count = count + 1
     if count == BMSsettings.nthlog:
 
-        output_log = [output_SOC, output_reliableCurrent, output_moduleVolt, output_hVolt, output_hTemp, output_hPCBTemp, output_lVolt, output_lVolt, output_lPCBTemp]
+        output_log = [output_SOC, output_reliableCurrent, output_moduleVolt, output_hVolt, output_hTemp, output_hPCBTemp, output_lVolt, output_lTemp, output_lPCBTemp]
         logging.info(output_log)
         count = 0
 
