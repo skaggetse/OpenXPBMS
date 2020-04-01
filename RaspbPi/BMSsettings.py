@@ -1,15 +1,16 @@
 # COMPORT SETUP
-sPort = 'COM3'
+sPort = '/dev/ttyUSB0'
 
 # How many Batteries in string
-batteries = 2
+batteries = 11
 
 # Voltage limits for shutdown
-hVoltLimit = 3600
+hVoltLimit = 3500
 lVoltLimit = 3000
 
 # Remove UI, View log
 debug = False
 
 # Logging path
-path = '/Users/skagget/Dropbox/Think City/Valence/OpenXPBMS/RaspbPi/logs/'
+path = '/home/pi/OpenXPBMS/RaspbPi/logs/'
+nthlog = 10

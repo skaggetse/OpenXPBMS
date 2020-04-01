@@ -73,6 +73,7 @@ def sHEX(hexstr):
 battery = 0
 readCellbank = 1
 error = 0
+count = 0
 reading = str()
 
 while ( readCellbank == 1 ):
@@ -181,9 +182,11 @@ while ( readCellbank == 1 ):
     output_hVolt=max(hVolt)
     output_lVolt=min(lVolt)
 
-    output_log = [output_SOC, output_reliableCurrent, output_moduleVolt, output_hVolt, output_hTemp, output_hPCBTemp, output_lVolt, output_lVolt, output_lPCBTemp]
+    if count == BMSsettings.nthlog:
 
-    logging.info(output_log)
+        output_log = [output_SOC, output_reliableCurrent, output_moduleVolt, output_hVolt, output_hTemp, output_hPCBTemp, output_lVolt, output_lVolt, output_lPCBTemp]
+        logging.info(output_log)
+        count = 0
 
     # Update TUI
     if BMSsettings.debug == False:
