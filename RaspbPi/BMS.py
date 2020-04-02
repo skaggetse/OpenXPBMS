@@ -60,8 +60,8 @@ chargeEnable()
 # set up logging to file - see previous section for more details
 logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
-                    datefmt='%m-%d %H:%M',
-                    filename= BMSsettings.path + 'batterylog.log',
+                    datefmt='%m-%d %H:%M:%S',
+                    filename= BMSsettings.path + 'batterylog-%(asctime)s.log',
                     filemode='w')
 
 
@@ -87,7 +87,6 @@ while ( readCellbank == 1 ):
     lTemp=list()
     PCBTemp=list()
 
-    
     # print('--------------------------------- START READ ----------------------------------')
     while ( battery < BMSsettings.batteries):
         battery = battery + 1
@@ -185,7 +184,7 @@ while ( readCellbank == 1 ):
     count = count + 1
     if count == BMSsettings.nthlog:
 
-        output_log = [output_SOC, output_reliableCurrent, output_moduleVolt, output_hVolt, output_hTemp, output_hPCBTemp, output_lVolt, output_lTemp, output_lPCBTemp]
+        output_log = [hVolt, lVolt]
         logging.info(output_log)
         count = 0
 
