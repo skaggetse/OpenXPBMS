@@ -6,6 +6,7 @@ import BMSsettings
 import RPi.GPIO as GPIO
 import logging
 import math
+import os
 if BMSsettings.debug is False:
     import curses
     import tui
@@ -78,6 +79,11 @@ logging.basicConfig(
     filename=BMSsettings.path + 'batterylog_' + time.strftime("%Y%m%d-%H:%M:%S") + '.log'
     )
 
+if BMSsettings.loglevel == 'module':
+    logging.info('Timestamp, Module, SOC, Current, ModuleVolt, PCBTemp, High Cell Temp, Low Cell Temp, High Cell Volt, Low Cell Volt')
+elif BMSsettings.loglevel == 'pack':
+    logging.info('Timestamp, SOC, Current, Pack Voltage, High Cell Volt, High Cell Temp, High PCB Temp, Low Cell Volt, Low Cell Temp Low PCB Temp, Pack Resistance, Ah Remaining')
+
 def sHEX(hexstr):
     if hexstr > 32767:
         hexstr = hexstr - 65536
@@ -94,7 +100,7 @@ while (readCellbank == 1):
 
     SOC = list()
     current = list()
-    moduleVolt = list()
+    packVolt = list()
     hVolt = list()
     lVolt = list()
     hTemp = list()
@@ -142,14 +148,29 @@ while (readCellbank == 1):
 
             # If CRC matches, continue
             if responsecrc == output[21:-2]:
-                SOC.append((output[4] / 256))
-                current.append(sHEX((output[5] * 256) + output[6]))
-                moduleVolt.append((output[9] * 256) + output[10])
-                PCBTemp.append(sHEX((output[7] * 256) + output[8]))
-                hTemp.append(sHEX((output[11] * 256) + output[12]))
-                lTemp.append(sHEX((output[13] * 256) + output[14]))
-                hVolt.append((output[15] * 256) + output[16])
-                lVolt.append((output[17] * 256) + output[18])
+
+                moduleNo = output[0]
+                moduleSOC = output[4] / 256
+                moduleCurrent = sHEX((output[5] * 256) + output[6])
+                moduleVolt = (output[9] * 256) + output[10]
+                modulePCBTemp = sHEX((output[7] * 256) + output[8])
+                modulehTemp = sHEX((output[11] * 256) + output[12])
+                modulelTemp = sHEX((output[13] * 256) + output[14])
+                modulehVolt = (output[15] * 256) + output[16]
+                modulelVolt = (output[17] * 256) + output[18]
+
+                SOC.append(moduleSOC)
+                current.append(moduleCurrent)
+                packVolt.append(moduleVolt)
+                PCBTemp.append(modulePCBTemp)
+                hTemp.append(modulehTemp)
+                lTemp.append(modulelTemp)
+                hVolt.append(modulehVolt)
+                lVolt.append(modulelVolt)
+
+                if BMSsettings.loglevel == 'module':
+                    moduleLog = str(round(timestamp, 1)) + ', ' + str(moduleNo) + ', ' + str(moduleSOC * 100) + ', ' + str(moduleCurrent) + ', ' + str(moduleVolt / 1000) + ', ' + str(modulePCBTemp) + ', ' + str(modulehTemp) + ', ' + str(modulelTemp) + ', ' + str(modulehVolt) + ', ' + str(modulelVolt)
+                    logging.info(moduleLog)
 
             # If CRC differs, clear buffer and read module again
             else:
@@ -179,19 +200,10 @@ while (readCellbank == 1):
             print("Program crashed, charge shutdown")
             quit()
 
-    # print("No of RS485 Errors:",error)
-    # print("Lowest SOC:",min(SOC))
-    # print("Median Current:",statistics.median(current))
-    # print("Total Pack Voltage:",sum(moduleVolt))
-    # print("Highest PCB Temperature:",max(PCBTemp))
-    # print("Lowest PCB Temperature:",min(PCBTemp))
-    # print("Highest Cell Temperature:",max(hTemp))
-    # print("Lowest Cell Temperature:",min(lTemp))
-    # print("Highest Cell Voltage:",max(hVolt))
-    # print("Lowest Cell Voltage:",min(lVolt))
 
     if BMSsettings.hVoltLimit < max(hVolt):
         chargeShutdown()
+        os.system("sudo shutdown -h now")
         # print("Shutdown High Volt")
         # m, hVcell = None
         # m = max(hVolt)
@@ -219,7 +231,7 @@ while (readCellbank == 1):
     deltaI = packCurrent - oldPackCurrent
     # Voltage
     oldPackVoltage = packVoltage
-    packVoltage = sum(moduleVolt) / 1000
+    packVoltage = sum(packVolt) / 1000
     deltaV = packVoltage - oldPackVoltage
     # Resistance
     if (abs(deltaI / dTime) > BMSsettings.packRtrigger):
@@ -274,18 +286,18 @@ while (readCellbank == 1):
         if key == ord('q'):
             break
 
-    count = count + 1
-    if count >= BMSsettings.nthlog:
+    if BMSsettings.loglevel == 'pack':
+        count = count + 1
+        if count >= BMSsettings.nthlog:
 
-        output_log = [round(timestamp, 1),
-                      output_SOC,   output_packCurrent, output_packVoltage,
-                      output_hVolt, output_hTemp, output_hPCBTemp,
-                      output_lVolt, output_lTemp, output_lPCBTemp,
-                      output_packR, output_Ahleft]
-        logging.info(output_log)
-        # logging.info(hVolt)
-        # logging.info(lVolt)
-        count = 0
+            output_log = [round(timestamp, 1),
+                        output_SOC,   output_packCurrent, output_packVoltage,
+                        output_hVolt, output_hTemp, output_hPCBTemp,
+                        output_lVolt, output_lTemp, output_lPCBTemp,
+                        output_packR, output_Ahleft]
+            logging.info(output_log)
+
+            count = 0
 
 # Reset window
 if BMSsettings.debug is False:

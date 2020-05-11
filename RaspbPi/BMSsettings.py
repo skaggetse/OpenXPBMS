@@ -18,7 +18,7 @@ packRtrigger = 80.0
 hVoltLimit = 3600
 lVoltLimit = 2800
 
-# Remove UI, View log
+# Remove UI
 debug = False
 
 # Read interval (s)
@@ -26,4 +26,5 @@ readInterval = 0.5
 
 # Logging
 path = '/home/pi/OpenXPBMS/RaspbPi/logs/'
+loglevel = 'module' #'pack' or 'module'
 nthlog = 1
