@@ -51,20 +51,30 @@ s = serial.Serial(
     timeout=1
 )
 
-# Setup GPIO pins for relay on/off
+# Setup GPIO pins for relay and warning
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
+# Charge Relay
 GPIO.setup(16, GPIO.OUT)
+# Warning Beep
+GPIO.setup(23, GPIO.OUT)
 
 
 # Function relay on
 def chargeEnable():
     GPIO.output(16, GPIO.HIGH)
 
-
 # Function relay off
 def chargeShutdown():
     GPIO.output(16, GPIO.LOW)
+
+# Function low voltage warning on
+def lowVoltageWarningOn():
+    GPIO.output(23, GPIO.HIGH)
+
+# Function low voltage warning off
+def lowVoltageWarningOff():
+    GPIO.output(23, GPIO.LOW)
 
 
 # Startup with relay on
@@ -211,11 +221,14 @@ while (readCellbank == 1):
         # hVcell = [i for i, j in enumerate(hVolt) if j == m]
 
     elif min(lVolt) < BMSsettings.lVoltLimit:
-        chargeShutdown()
+        lowVoltageWarningOn()
         # print("Shutdown Low Volt")
         # l = min(lVolt)
         # print(l)
         # print([i for i, j in enumerate(hVolt) if j == l])
+
+    elif min(lVolt) > BMSsettings.lVoltLimit:
+        lowVoltageWarningOff()
 
     battery = 0
 
